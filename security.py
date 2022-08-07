@@ -4,8 +4,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 
 
-#API_KEY = os.getenv("API_KEY")
-API_KEY = "123asd456"
+API_KEY = os.getenv("API_KEY")
 
 X_API_KEY = APIKeyHeader(name='X-API-Key')
 
