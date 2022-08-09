@@ -1,4 +1,4 @@
-import secrets, string, base64
+import secrets, string, base64, jwt
 from fastapi import FastAPI, Depends, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -29,9 +29,6 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"]
 )
-
-class GeneratedPassword(BaseModel):
-    newpass: str
     
 class EncodedString(BaseModel):
     value: str
@@ -56,6 +53,28 @@ async def decode_base64( input: EncodedString) -> DecodedString:
     decoded = base64.b64decode( input.value)
     logger.debug(f"Decoded value: {decoded}")
     return {"value": decoded, "charset": input.charset}
+
+class EncodedJWT(BaseModel):
+    value: str
+
+class DecodedJWT(BaseModel):
+    value: dict
+    error_msg: str
+
+@app.post("/jwt/dec/", tags=["JWT"], response_model=DecodedJWT, status_code=200, dependencies=[Depends(api_key_auth)])
+async def decode_base64( input: EncodedJWT) -> DecodedJWT:
+    logger.debug(f"JWT Input to decode: {input}")
+    decoded = {}
+    try:
+        decoded = jwt.decode(input.value, options={"verify_signature": False})
+    except Exception as e:
+        logger.error(f"Exception asd: {e}")   
+        return {"value": decoded, "error_msg": f"{e}"}
+    logger.debug(f"JWT Decoded value: {decoded}")
+    return {"value": decoded, "error_msg": ""}
+
+class GeneratedPassword(BaseModel):
+    newpass: str
 
 @app.get("/newpass/", tags=["Generator"], response_model=GeneratedPassword, status_code=200, dependencies=[Depends(api_key_auth)])
 async def generate_password( length: int = 8, uppercases: bool = True, lowercases: bool = True, digits: bool = True, specials: bool = False) -> dict:

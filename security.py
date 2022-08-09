@@ -5,6 +5,7 @@ from fastapi.security import APIKeyHeader
 
 
 API_KEY = os.getenv("API_KEY")
+API_KEY = "123asd456"
 
 X_API_KEY = APIKeyHeader(name='X-API-Key')
 
